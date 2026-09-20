@@ -76,8 +76,9 @@ describe("claves y suscripciones", () => {
   it("un dispositivo que cambia de cuenta pasa a la nueva persona", async () => {
     const shared = sub();
     await call("POST", "/api/push/subscribe", ana, shared);
-    await call("POST", "/api/push/subscribe", luis, shared);
     expect((await call("GET", "/api/push/prefs", ana)).body.devices).toBe(2);
+    await call("POST", "/api/push/subscribe", luis, shared);
+    expect((await call("GET", "/api/push/prefs", ana)).body.devices).toBe(1); // el dispositivo dejó de ser de Ana
     expect((await call("GET", "/api/push/prefs", luis)).body.devices).toBe(2);
     await call("POST", "/api/push/unsubscribe", luis, { endpoint: shared.endpoint });
     expect((await call("GET", "/api/push/prefs", luis)).body.devices).toBe(1);
