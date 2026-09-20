@@ -157,6 +157,7 @@ export async function buildApp(cfg: AppConfig): Promise<App> {
   pinger.unref();
   app.addHook("onClose", async () => {
     clearInterval(pinger);
+    await notifier.flush(); // envía lo pendiente antes de cerrar la BD
     db.close();
   });
 

@@ -8,7 +8,10 @@ const app = await buildApp({
   version: process.env.APP_VERSION ?? "0.0.0",
   setupCode: process.env.SETUP_CODE || undefined,
   webDir: process.env.WEB_DIR ?? "web",
-  allowedOrigins: (process.env.ALLOWED_ORIGINS ?? "https://compra.redgarverde.com,https://localhost,http://localhost:5173")
+  allowedOrigins: (process.env.ALLOWED_ORIGINS
+    ?? (process.env.NODE_ENV === "production"
+      ? "https://compra.redgarverde.com"
+      : "https://compra.redgarverde.com,https://localhost,http://localhost:5173"))
     .split(",").map((s) => s.trim()).filter(Boolean),
   publicUrl: process.env.PUBLIC_URL,
   authRateLimit: process.env.AUTH_RATE_LIMIT ? Number(process.env.AUTH_RATE_LIMIT) : undefined,
