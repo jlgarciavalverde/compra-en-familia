@@ -1,0 +1,79 @@
+@import "tailwindcss";
+@import "@fontsource-variable/fraunces";
+@import "@fontsource-variable/nunito";
+
+/* Tokens de diseño: cálido y acogedor. Claro por defecto, oscuro por preferencia del sistema. */
+:root {
+  --bg: #fbf6ee;
+  --surface: #ffffff;
+  --surface-2: #f5ede0;
+  --text: #2b211b;
+  --text-muted: #6f5f53;
+  --primary: #c94a2f;
+  --primary-contrast: #ffffff;
+  --sage: #6b8c5f;
+  --mustard: #e3a93a;
+  --border: #e8dccb;
+  --shadow: 0 8px 24px -12px rgb(90 60 30 / 0.25);
+  --radius: 22px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1f1a17;
+    --surface: #2a231f;
+    --surface-2: #332a25;
+    --text: #f4ebe1;
+    --text-muted: #b9a999;
+    --primary: #ec7256;
+    --primary-contrast: #1f1a17;
+    --sage: #93b585;
+    --mustard: #eebb52;
+    --border: #3d332d;
+    --shadow: 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #1f1a17;
+  --surface: #2a231f;
+  --surface-2: #332a25;
+  --text: #f4ebe1;
+  --text-muted: #b9a999;
+  --primary: #ec7256;
+  --primary-contrast: #1f1a17;
+  --sage: #93b585;
+  --mustard: #eebb52;
+  --border: #3d332d;
+  --shadow: 0 8px 24px -12px rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--text);
+  --color-muted: var(--text-muted);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--primary-contrast);
+  --color-sage: var(--sage);
+  --color-mustard: var(--mustard);
+  --color-line: var(--border);
+  --font-display: "Fraunces Variable", Georgia, serif;
+  --font-sans: "Nunito Variable", system-ui, sans-serif;
+  --radius-card: var(--radius);
+  --shadow-card: var(--shadow);
+}
+
+html, body, #root { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

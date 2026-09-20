@@ -1,0 +1,33 @@
+{
+  "name": "@compra/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsup",
+    "typecheck": "tsc -p .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.3",
+    "@types/web-push": "^3.6.4",
+    "@types/ws": "^8.18.1",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  },
+  "dependencies": {
+    "@compra/shared": "workspace:*",
+    "@fastify/cors": "^11.3.0",
+    "@fastify/helmet": "^13.1.1",
+    "@fastify/rate-limit": "^11.2.0",
+    "@fastify/static": "^10.1.4",
+    "@fastify/websocket": "^11.3.0",
+    "fastify": "^5.12.5",
+    "web-push": "^3.6.7",
+    "ws": "^8.21.3",
+    "zod": "^4.6.5"
+  }
+}

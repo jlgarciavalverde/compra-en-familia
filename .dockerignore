@@ -1,0 +1,11 @@
+**/node_modules
+**/dist
+.git
+.env
+data
+backups
+secrets
+android
+test-results
+e2e/.data
+playwright-report
