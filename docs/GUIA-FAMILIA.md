@@ -1,5 +1,7 @@
 # Compra en Familia — guía para la familia
 
+[← Documentación](README.md) · [README del proyecto](../README.md)
+
 La lista de la compra de casa, compartida: lo que uno apunta lo ven todos al instante, también en el súper sin cobertura.
 
 ## Empezar

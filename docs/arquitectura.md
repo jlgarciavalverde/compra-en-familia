@@ -1,5 +1,7 @@
 # Arquitectura
 
+[← Documentación](README.md) · [README del proyecto](../README.md)
+
 Compra en Familia es un monorepo pnpm con tres paquetes y una sola imagen de Docker en producción.
 
 | Paquete | Qué es |
@@ -131,6 +133,19 @@ erDiagram
 Otras tablas: `applied_mutations` (claves de idempotencia ya aplicadas por usuario) y `kv` (claves VAPID y ajustes internos).
 
 Las migraciones son lineales y van por `PRAGMA user_version` en `apps/api/src/db.ts`. No hay migraciones de bajada.
+
+## API
+
+- Todo va bajo `/api/...`, salvo `GET /health` y el WebSocket `/ws`. El WebSocket se autentica con el token en el primer mensaje y da 10 s de margen.
+- Autenticación con correo y contraseña (scrypt). Sesiones opacas Bearer, guardadas como sha256 y válidas 90 días con renovación.
+- Recursos principales: `lists` e `items`, `catalog` y `suggestions`, `stores` y `prices`, `history`, `household` (invitaciones y miembros), `me` (cuenta y sesiones), `push` y `export`.
+
+## Seguridad
+
+- Cambio de contraseña, lista y cierre de sesiones, y recuperación del acceso con un enlace de un solo uso que genera un administrador (sin correo).
+- CSP estricta (helmet), CORS cerrado y límite de peticiones en la autenticación.
+- Consultas preparadas, filtradas por hogar, y comparación de contraseñas en tiempo constante.
+- Los avisos push solo se envían a hosts permitidos (`fcm.googleapis.com`, Mozilla, Windows, Apple), como protección contra SSRF.
 
 ## Decisiones
 

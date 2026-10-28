@@ -1,5 +1,7 @@
 # Operaciones
 
+[← Documentación](README.md) · [README del proyecto](../README.md)
+
 Manual para quien mantiene el servidor. Convenciones de desarrollo en `AGENTS.md`; despliegue paso a paso en `.kimi-code/skills/deploy/SKILL.md`.
 
 ## Piezas
@@ -14,6 +16,34 @@ Manual para quien mantiene el servidor. Convenciones de desarrollo en `AGENTS.md
 
 Las claves VAPID de las notificaciones se generan solas la primera vez y viven en la base de datos (`kv`).
 
+## Variables de entorno
+
+API:
+
+| Variable | Defecto | Descripción |
+|---|---|---|
+| `PORT` | `3000` | Puerto de escucha |
+| `DATA_DIR` | `data` | Directorio con `compra.db` y `backups/` |
+| `SETUP_CODE` | — | Código que exige el primer registro (crea el hogar). Sin él, la API no se puede inicializar |
+| `ALLOWED_ORIGINS` | prod: `https://compra.redgarverde.com` · dev: además las variantes de `localhost` | Orígenes CORS permitidos |
+| `PUBLIC_URL` | `https://compra.redgarverde.com` | URL pública (sujeto VAPID de los avisos push) |
+| `APP_VERSION` | `0.0.0` | Versión que informa `/health` |
+| `AUTH_RATE_LIMIT` | interno | Máximo de peticiones por minuto e IP en las rutas de autenticación |
+| `LOG_LEVEL` | `info` | Nivel de log (pino) |
+| `WEB_DIR` | `web` | Directorio del build estático de la web |
+
+Web (al compilar): `VITE_API_URL`, `VITE_PUBLIC_URL`.
+
+## Imagen de Docker
+
+Imagen única y multi-stage (`Dockerfile`), que corre como `USER node`:
+
+```bash
+docker build --build-arg APP_VERSION=$(git describe --tags 2>/dev/null || echo 0.0.0) -t compra-en-familia:<versión> .
+```
+
+En el VPS (`deploy/docker-compose.yml`): Docker rootless, sin puertos publicados, rootfs de solo lectura, `cap_drop: [ALL]` y límite de 512 MiB y 1 CPU.
+
 ## Desplegar una versión
 
 Ver la skill `deploy`. Resumen: build de la imagen en el Mac (`linux/amd64`), `docker save | ssh docker load`, **parar → copiar `data/` a `data-pre-<versión>` → `up`**, y comprobar `healthy`, `/health` y el dominio. Las migraciones (`db.ts`, `PRAGMA user_version`) son lineales y no tienen vuelta atrás: la copia previa es el rollback.
@@ -23,7 +53,7 @@ Ver la skill `deploy`. Resumen: build de la imagen en el Mac (`linux/amd64`), `d
 Tres capas:
 
 1. **La app**, cada 6 h: `data/backups/compra-AAAA-MM-DD.db` (una por día, 14 días). Copia consistente (`VACUUM INTO`).
-2. **El VPS**, semanal: `~/servicios/backup.sh` → `~/backups/<fecha>/` (compra + Nextcloud, 8 copias). Mismo disco que el servicio.
+2. **El VPS**: `~/servicios/backup.sh` → `~/backups/<fecha>/` (compra + Nextcloud, 8 copias), en el mismo disco que el servicio. Está pensado para un cron semanal que aún no está programado (ver [homelab](https://github.com/jlgarciavalverde/homelab/blob/main/docs/copias.md)).
 3. **Fuera del servidor**: `scripts/pull-backups.sh` trae a este Mac la última copia de la app y **comprueba su integridad** (`PRAGMA integrity_check`) antes de guardarla en `~/Backups/compra-en-familia/` (14 copias). Es la que protege de un fallo de disco del VPS.
 
 Para que la tercera se haga sola cada día a las 21:00 (Mac encendido), crear `~/Library/LaunchAgents/es.redgarverde.compra-backup.plist`:

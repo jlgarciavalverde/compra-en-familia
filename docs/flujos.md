@@ -1,5 +1,7 @@
 # Flujos principales
 
+[← Documentación](README.md) · [README del proyecto](../README.md)
+
 ## Alta del hogar e invitaciones
 
 ```mermaid
