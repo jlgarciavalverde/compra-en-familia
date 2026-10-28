@@ -53,7 +53,7 @@ Ver la skill `deploy`. Resumen: build de la imagen en el Mac (`linux/amd64`), `d
 Tres capas:
 
 1. **La app**, cada 6 h: `data/backups/compra-AAAA-MM-DD.db` (una por día, 14 días). Copia consistente (`VACUUM INTO`).
-2. **El VPS**: `~/servicios/backup.sh` → `~/backups/<fecha>/` (compra + Nextcloud, 8 copias), en el mismo disco que el servicio. Está pensado para un cron semanal que aún no está programado (ver [homelab](https://github.com/jlgarciavalverde/homelab/blob/main/docs/copias.md)).
+2. **El VPS**: `~/servicios/backup.sh` → `~/backups/<fecha>/` (compra + Nextcloud, 8 copias), en el mismo disco que el servicio. Se ejecuta cada domingo a las 3:00 con el cron del usuario.
 3. **Fuera del servidor**: `scripts/pull-backups.sh` trae a este Mac la última copia de la app y **comprueba su integridad** (`PRAGMA integrity_check`) antes de guardarla en `~/Backups/compra-en-familia/` (14 copias). Es la que protege de un fallo de disco del VPS.
 
 Para que la tercera se haga sola cada día a las 21:00 (Mac encendido), crear `~/Library/LaunchAgents/es.redgarverde.compra-backup.plist`:
