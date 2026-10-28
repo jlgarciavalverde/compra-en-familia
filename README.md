@@ -1,6 +1,35 @@
 # Compra en Familia
 
-App de gestión de compras para el hogar: listas compartidas en tiempo real, modo tienda con captura de precios, comparador por cadena, historial y notificaciones push. PWA offline-first (cola de mutaciones con idempotencia + WebSocket).
+[![Licencia MIT](https://img.shields.io/badge/licencia-MIT-blue)](LICENSE)
+![Versión 0.5.0](https://img.shields.io/badge/versión-0.5.0-orange)
+![Node 22](https://img.shields.io/badge/node-22-339933?logo=node.js&logoColor=white)
+![React 19](https://img.shields.io/badge/react-19-61DAFB?logo=react&logoColor=black)
+![PWA offline](https://img.shields.io/badge/PWA-offline--first-5A0FC8)
+
+App de gestión de compras para el hogar: listas compartidas en tiempo real, modo tienda con captura de precios, comparador por cadena, historial y notificaciones push. PWA offline-first (cola de mutaciones con idempotencia + WebSocket), también como APK de Android.
+
+## Qué hace
+
+- **Listas compartidas en directo**: lo que añade o tacha cada uno aparece al momento en el resto de móviles.
+- **Texto libre**: «2 kg patatas, leche, 6 huevos» se convierte en tres productos con cantidad, unidad y categoría.
+- **Sin cobertura**: funciona sin conexión y envía los cambios al volver la red, sin duplicados.
+- **Modo tienda**: la lista se ordena por los pasillos de cada súper y se pueden apuntar precios al comprar.
+- **Precios**: comparador por cadena, historial y precio por unidad.
+- **Avisos push** configurables por persona, sin Firebase.
+- **Hogar privado**: alta con código de instalación, invitaciones de un solo uso y roles admin/miembro.
+
+## Arquitectura en una imagen
+
+```mermaid
+flowchart LR
+  pwa["PWA / APK<br/>React 19 · TanStack Query · outbox"] -- "HTTPS + WS" --> api["API Fastify 5<br/>Node 22"]
+  api --> db[("SQLite WAL")]
+  api -- "Web Push" --> pwa
+  shared["packages/shared<br/>zod · parser · precios"] -.-> pwa
+  shared -.-> api
+```
+
+Más detalle en [docs/arquitectura.md](docs/arquitectura.md) (contenedores, despliegue, modelo de datos, decisiones), [docs/requisitos.md](docs/requisitos.md) y [docs/flujos.md](docs/flujos.md) (alta, offline, tienda, push).
 
 ## Stack
 
@@ -52,6 +81,7 @@ Web (build): `VITE_API_URL`, `VITE_PUBLIC_URL`.
 
 ## Documentación
 
+- `docs/arquitectura.md`, `docs/requisitos.md`, `docs/flujos.md` — diseño, requisitos y flujos con diagramas.
 - `docs/GUIA-FAMILIA.md` — cómo se usa (para la familia).
 - `docs/OPERACIONES.md` — despliegue, copias y restauración, APK, notificaciones, seguridad y problemas típicos (para quien mantiene el servidor).
 - `AGENTS.md` y `.kimi-code/skills/` — convenciones y procedimiento de despliegue.
@@ -75,3 +105,7 @@ Web Push (VAPID) sin Firebase: claves generadas solas y guardadas en la tabla `k
 ## Seguridad
 
 Cambio de contraseña, lista y cierre de sesiones, y recuperación del acceso por enlace de un solo uso generado por un administrador (sin correo). CSP estricta (helmet), CORS cerrado, rate-limit en auth, consultas preparadas, scopeo por hogar en cada query, verificación de contraseña con comparación de tiempos, allowlist de hosts de push anti-SSRF (`fcm.googleapis.com`, Mozilla, Windows, Apple).
+
+## Licencia
+
+[MIT](LICENSE) © 2026 José Luis García Valverde
