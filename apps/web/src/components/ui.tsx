@@ -139,7 +139,7 @@ export function EmojiPicker({ value, onChange, options = LIST_EMOJIS }: { value:
           key={e} type="button" role="radio" aria-checked={value === e}
           onClick={() => onChange(e)}
           className={cn("grid size-12 place-items-center rounded-2xl text-2xl transition active:scale-90",
-            value === e ? "bg-primary/15 ring-2 ring-primary" : "bg-surface-2")}
+            value === e ? "bg-primary/10 ring-2 ring-primary" : "bg-surface-2")}
         >
           {e}
         </button>

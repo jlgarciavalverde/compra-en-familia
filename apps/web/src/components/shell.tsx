@@ -35,7 +35,7 @@ export function Shell() {
             key={to} to={to} end={end}
             className={({ isActive }) => cn(
               "flex min-h-12 items-center gap-3 rounded-2xl px-4 font-bold transition",
-              isActive ? "bg-primary/12 text-primary" : "text-muted hover:bg-surface-2",
+              isActive ? "bg-primary/10 text-primary" : "text-muted hover:bg-surface-2",
             )}
           >
             {({ isActive }) => (<><Icon size={24} weight={isActive ? "fill" : "duotone"} />{label}</>)}

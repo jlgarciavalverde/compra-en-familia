@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowsClockwise, CloudSlash } from "@phosphor-icons/react";
 import { useAuth } from "../lib/auth";
 import { outbox, useOutbox } from "../lib/outbox";
+import { resyncPush } from "../lib/push";
 import { useToast } from "./toast";
 
 /** Conecta la cola de cambios pendientes con la sesión actual. */
@@ -15,6 +16,7 @@ export function SyncAgent() {
     if (!user) return;
     void outbox.attach(qc, user.id, (n) =>
       toast({ message: n === 1 ? "Un cambio no se pudo aplicar (el producto ya no existía)" : `${n} cambios no se pudieron aplicar`, tone: "error" }));
+    void resyncPush();
     return () => outbox.detach();
   }, [user?.id, qc]); // eslint-disable-line react-hooks/exhaustive-deps
   return null;

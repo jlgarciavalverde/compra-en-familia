@@ -1,5 +1,5 @@
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { createReadStream, existsSync, readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import Fastify, { LogController, type FastifyInstance } from "fastify";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
@@ -161,17 +161,36 @@ export async function buildApp(cfg: AppConfig): Promise<App> {
     db.close();
   });
 
+  // Descarga de la app de Android. Los archivos los deja el despliegue en la carpeta de datos (no van en la imagen).
+  const apkFile = cfg.downloadsDir ? join(cfg.downloadsDir, "compra-en-familia.apk") : undefined;
+  const versionFile = cfg.downloadsDir ? join(cfg.downloadsDir, "version.json") : undefined;
+  app.get("/app.apk", async (_req, reply) => {
+    if (!apkFile || !existsSync(apkFile)) return reply.code(404).send({ error: "not_found", message: "La app de Android aún no está disponible" });
+    return reply
+      .header("Content-Type", "application/vnd.android.package-archive")
+      .header("Content-Disposition", 'attachment; filename="compra-en-familia.apk"')
+      .header("Cache-Control", "no-cache")
+      .send(createReadStream(apkFile));
+  });
+  /** Versión, tamaño y huella del APK publicado (la web lo usa para mostrar el botón de descarga). */
+  app.get("/version.json", async (_req, reply) => {
+    if (!versionFile || !existsSync(versionFile)) return reply.code(404).send({ error: "not_found", message: "Sin versión publicada" });
+    return reply.header("Cache-Control", "no-cache").type("application/json").send(readFileSync(versionFile, "utf8"));
+  });
+
   const webDir = cfg.webDir ? resolve(cfg.webDir) : undefined;
   if (webDir && existsSync(webDir)) {
     await app.register(fastifyStatic, {
       root: webDir,
+      // Android exige servir /.well-known/assetlinks.json para verificar que la app es de este dominio.
+      dotfiles: "allow",
       cacheControl: false,
       setHeaders(res, path) {
         res.header("Cache-Control", path.includes("/assets/") ? "public, max-age=31536000, immutable" : "no-cache");
       },
     });
     app.setNotFoundHandler((req, reply) => {
-      const isApi = req.url.startsWith("/api") || req.url.startsWith("/ws");
+      const isApi = req.url.startsWith("/api") || req.url.startsWith("/ws") || req.url.startsWith("/.well-known/") || req.url.endsWith(".apk");
       if (req.method === "GET" && !isApi) return reply.header("Cache-Control", "no-cache").sendFile("index.html");
       return reply.code(404).send({ error: "not_found", message: "No encontrado" });
     });

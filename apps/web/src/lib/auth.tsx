@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Household, User } from "@compra/shared";
 import { api, ApiError, tokenStore, UNAUTHORIZED_EVENT } from "./api";
 import { outbox } from "./outbox";
+import { releasePushForLogout } from "./push";
 import { clearLocalData } from "./store";
 
 interface AuthState {
@@ -23,6 +24,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ["me"],
     queryFn: api.me,
     enabled: hasToken,
+    // El hogar (miembros, roles) y el perfil cambian por acciones de otras personas: se piden siempre al abrir la app,
+    // aunque haya una copia guardada en el dispositivo.
+    staleTime: 0,
+    refetchOnMount: "always",
     retry: (n, err) => !(err instanceof ApiError && err.status === 401) && n < 2,
   });
 
@@ -51,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut: async () => {
       // Antes de salir, se intenta enviar lo que quedara pendiente para no perderlo.
       await outbox.flush().catch(() => undefined);
+      await releasePushForLogout();
       await api.logout().catch(() => undefined);
       await clear();
       window.location.assign("/entrar");

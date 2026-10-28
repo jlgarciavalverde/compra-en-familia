@@ -112,6 +112,52 @@ export function LoginPage() {
   );
 }
 
+export function ResetPage() {
+  const { code = "" } = useParams();
+  const { loading, signIn } = useAuth();
+  const navigate = useNavigate();
+  const info = useQuery({ queryKey: ["reset", code], queryFn: () => api.resetInfo(code), retry: false });
+  const [password, setPassword] = useState("");
+  const [repeat, setRepeat] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  if (loading || info.isPending) return <Spinner />;
+
+  if (!info.data?.valid) {
+    return (
+      <AuthLayout title="Enlace no válido" subtitle="El enlace ha caducado o ya se ha usado. Pide uno nuevo a quien administra el hogar.">
+        <Link to="/entrar" className="block text-center font-bold text-primary">Volver a entrar</Link>
+      </AuthLayout>
+    );
+  }
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (password.length < 8) return setError("La contraseña necesita al menos 8 caracteres");
+    if (password !== repeat) return setError("Las dos contraseñas no coinciden");
+    setError("");
+    setBusy(true);
+    try {
+      const { token } = await api.resetPassword({ code, password });
+      await signIn(token);
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Algo ha fallado");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <AuthLayout title={`Hola, ${info.data.name}`} subtitle="Elige una contraseña nueva para volver a entrar.">
+      <form onSubmit={submit} className="flex flex-col gap-4">
+        <Field label="Contraseña nueva" type="password" autoComplete="new-password" minLength={8} required value={password} onChange={(e) => setPassword(e.target.value)} />
+        <Field label="Repite la contraseña" type="password" autoComplete="new-password" minLength={8} required value={repeat} onChange={(e) => setRepeat(e.target.value)} />
+        {error && <p role="alert" className="text-sm font-bold text-primary">{error}</p>}
+        <Button type="submit" disabled={busy}>{busy ? "Guardando…" : "Guardar y entrar"}</Button>
+      </form>
+    </AuthLayout>
+  );
+}
+
 export function JoinPage() {
   const { code = "" } = useParams();
   const { user, loading } = useAuth();

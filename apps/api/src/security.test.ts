@@ -156,3 +156,24 @@ describe("recuperar el acceso de otra persona", () => {
     expect((await call("GET", `/api/reset/${c}`)).body.valid).toBe(false);
   });
 });
+
+describe("los demás ven al recién llegado", () => {
+  it("unirse por invitación avisa en tiempo real al hogar", async () => {
+    await app.listen({ port: 0, host: "127.0.0.1" });
+    const port = (app.server.address() as { port: number }).port;
+    const { default: WebSocket } = await import("ws");
+    const msgs: Json[] = [];
+    const ws = await new Promise<InstanceType<typeof WebSocket>>((resolve, reject) => {
+      const w = new WebSocket(`ws://127.0.0.1:${port}/ws`);
+      w.on("message", (d) => { const m = JSON.parse(d.toString()); msgs.push(m); if (m.type === "ready") resolve(w); });
+      w.on("open", () => w.send(JSON.stringify({ type: "auth", token: ana })));
+      w.on("error", reject);
+    });
+    msgs.length = 0;
+    const inv = await call("POST", "/api/household/invites", ana);
+    await call("POST", "/api/auth/register", undefined, { name: "Nuevo", email: "nuevo@casa.es", password: "otrasecreta1", inviteCode: inv.body.code });
+    await new Promise((r) => setTimeout(r, 150));
+    expect(msgs).toContainEqual({ type: "changed" });
+    ws.close();
+  });
+});

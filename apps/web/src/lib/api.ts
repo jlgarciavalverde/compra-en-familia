@@ -1,10 +1,10 @@
-import type { CatalogProduct, Category, Chain, Household, Item, ItemPatch, ListDetail, ListSummary, ManualPriceInput, PriceEntry, Purchase, Store, Suggestion, SuggestedProduct, User } from "@compra/shared";
+import type { CatalogProduct, Category, Chain, Household, Item, ItemPatch, ListDetail, ListSummary, ManualPriceInput, PriceEntry, Purchase, SessionInfo, Store, Suggestion, SuggestedProduct, User } from "@compra/shared";
 
 /** En la web va vacío (mismo origen). El APK de Capacitor lo fija a https://compra.redgarverde.com. */
 export const API_URL: string = import.meta.env.VITE_API_URL ?? "";
 
 /** URL pública para compartir enlaces (en el APK window.location no sirve). */
-export const PUBLIC_URL: string = import.meta.env.VITE_PUBLIC_URL ?? window.location.origin;
+export const PUBLIC_URL: string = import.meta.env.VITE_PUBLIC_URL ?? (typeof window !== "undefined" ? window.location.origin : "");
 
 const TOKEN_KEY = "ce_token";
 
@@ -55,6 +55,13 @@ const post = <T,>(p: string, b?: unknown) => request<T>("POST", p, b ?? {});
 const patch = <T,>(p: string, b: unknown) => request<T>("PATCH", p, b);
 const del = <T = void,>(p: string) => request<T>("DELETE", p);
 
+export interface PushPrefs {
+  added: boolean;
+  assigned: boolean;
+  shopping: boolean;
+  completed: boolean;
+}
+
 export interface AddItemBody {
   text?: string;
   name?: string;
@@ -72,6 +79,18 @@ export const api = {
   logout: () => post<void>("/api/auth/logout"),
   me: () => get<{ user: User; household: Household }>("/api/me"),
   updateMe: (b: { name?: string; avatarColor?: string; avatarEmoji?: string }) => patch<{ user: User }>("/api/me", b),
+  changePassword: (b: { current: string; next: string }) => post<void>("/api/me/password", b),
+  sessions: () => get<{ sessions: SessionInfo[] }>("/api/me/sessions"),
+  revokeSession: (id: string) => del(`/api/me/sessions/${id}`),
+  resetMember: (id: string) => post<{ code: string; name: string; expiresAt: number }>(`/api/household/members/${id}/reset`),
+  resetInfo: (code: string) => get<{ valid: boolean; name: string | null }>(`/api/reset/${encodeURIComponent(code)}`),
+  resetPassword: (b: { code: string; password: string }) => post<{ token: string; user: User }>("/api/auth/reset", b),
+  pushKey: () => get<{ publicKey: string }>("/api/push/key"),
+  pushSubscribe: (b: { endpoint: string; keys: { p256dh: string; auth: string } }) => post<void>("/api/push/subscribe", b),
+  pushUnsubscribe: (endpoint: string) => post<void>("/api/push/unsubscribe", { endpoint }),
+  pushPrefs: () => get<{ prefs: PushPrefs; devices: number }>("/api/push/prefs"),
+  setPushPrefs: (b: Partial<PushPrefs>) => patch<{ prefs: PushPrefs }>("/api/push/prefs", b),
+  pushTest: () => post<{ sent: number }>("/api/push/test"),
   createInvite: () => post<{ code: string; expiresAt: number }>("/api/household/invites"),
   catalog: () => get<{ products: CatalogProduct[] }>("/api/catalog"),
   categories: () => get<{ categories: Category[] }>("/api/categories"),

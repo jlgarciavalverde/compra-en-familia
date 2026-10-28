@@ -269,7 +269,7 @@ export function StorePage() {
             <button key={s?.id ?? "default"} role="radio" aria-checked={store?.id === (s?.id ?? undefined) || (!store && !s)}
               onClick={() => { choose(s?.id ?? null); setPickStore(false); }}
               className={cn("flex min-h-14 items-center gap-3 rounded-2xl px-4 text-left font-bold transition",
-                (store?.id ?? null) === (s?.id ?? null) ? "bg-primary/15 text-primary ring-2 ring-primary" : "bg-surface-2")}>
+                (store?.id ?? null) === (s?.id ?? null) ? "bg-primary/10 text-primary ring-2 ring-primary" : "bg-surface-2")}>
               {s ? <MapPin size={22} weight="duotone" aria-hidden /> : <Storefront size={22} weight="duotone" aria-hidden />}
               {s ? s.name : "Orden por defecto"}
             </button>

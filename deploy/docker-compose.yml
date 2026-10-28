@@ -1,7 +1,7 @@
 # Se copia a ~/servicios/compra/ en el VPS. Sin `ports:` a propósito: solo se accede por el túnel de Cloudflare.
 services:
   compra:
-    image: compra-en-familia:latest
+    image: compra-en-familia:0.5.0
     container_name: compra
     restart: unless-stopped
     # Docker del VPS es rootless: el root del contenedor es el usuario `joseluis` del host (sin privilegios

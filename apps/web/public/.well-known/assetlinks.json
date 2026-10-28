@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.redgarverde.compra",
+      "sha256_cert_fingerprints": [
+        "94:8B:0B:D9:A9:55:DF:56:D3:8D:A1:F2:9C:C3:08:84:F9:05:C0:5E:75:9B:06:62:3A:3F:6D:26:20:97:11:B4"
+      ]
+    }
+  }
+]

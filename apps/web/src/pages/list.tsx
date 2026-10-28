@@ -373,7 +373,7 @@ export function ItemSheet({ item, categories, members, listId, onClose }: {
                 const on = draft.categoryId === c.id;
                 return (
                   <button key={c.id} type="button" role="radio" aria-checked={on} onClick={() => set({ categoryId: c.id })}
-                    className={cn("flex min-h-12 items-center gap-2 rounded-2xl px-3 text-left text-sm font-bold transition", on ? "bg-primary/15 text-primary ring-2 ring-primary" : "bg-surface-2 text-muted")}>
+                    className={cn("flex min-h-12 items-center gap-2 rounded-2xl px-3 text-left text-sm font-bold transition", on ? "bg-primary/10 text-primary ring-2 ring-primary" : "bg-surface-2 text-muted")}>
                     <Icon size={20} weight="duotone" aria-hidden /><span className="leading-tight">{c.name}</span>
                   </button>
                 );

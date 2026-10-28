@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from "react-router";
 import { useAuth } from "./lib/auth";
 import { Shell } from "./components/shell";
 import { Spinner } from "./components/ui";
-import { JoinPage, LoginPage } from "./pages/auth";
+import { JoinPage, LoginPage, ResetPage } from "./pages/auth";
 import { HistoryPage } from "./pages/history";
 import { ListPage } from "./pages/list";
 import { ListsPage } from "./pages/lists";
@@ -22,6 +22,7 @@ export function App() {
     <Routes>
       <Route path="/entrar" element={<LoginPage />} />
       <Route path="/unirse/:code" element={<JoinPage />} />
+      <Route path="/restablecer/:code" element={<ResetPage />} />
       <Route element={<RequireAuth />}>
         <Route index element={<ListsPage />} />
         <Route path="listas/:id" element={<ListPage />} />

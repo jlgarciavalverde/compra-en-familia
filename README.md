@@ -7,7 +7,8 @@ App de gestión de compras para el hogar: listas compartidas en tiempo real, mod
 - **API** (`apps/api`): Fastify 5, Node 22 (`node:sqlite`, WAL), zod, `web-push`. Sirve también el build estático de la web.
 - **Web** (`apps/web`): React 19, Vite 8, TanStack Query (persistido en IndexedDB), react-router 8, Tailwind 4, `vite-plugin-pwa`.
 - **Shared** (`packages/shared`): esquemas zod, parsing de texto libre, normalización de precios. Sin build (lo compilan los consumidores).
-- **e2e**: Playwright (4 specs: familia, offline, tienda, precios).
+- **e2e**: Playwright (7 specs: familia, offline, tienda, zz-precios, zz-seguridad, zz-android y zzz-accesibilidad con axe WCAG 2.1 AA). Dependen entre sí y corren en orden alfabético.
+- **App de Android**: una TWA (`tools/twa`, Bubblewrap) que abre la web a pantalla completa; ver `docs/OPERACIONES.md`.
 
 ## Desarrollo
 
@@ -41,13 +42,19 @@ En el VPS (`~/servicios/compra/`, ver `deploy/docker-compose.yml`): rootless Doc
 | `DATA_DIR` | `data` | Directorio con `compra.db` y `backups/` |
 | `SETUP_CODE` | — | Código que exige el primer registro (crea el hogar). Sin él, la API no se puede inicializar |
 | `ALLOWED_ORIGINS` | prod: `https://compra.redgarverde.com` · dev: + `localhost` variantes | Orígenes CORS permitidos |
-| `PUBLIC_URL` | — | URL pública (sujeto VAPID de los push) |
+| `PUBLIC_URL` | `https://compra.redgarverde.com` | URL pública (sujeto VAPID de los push) |
 | `APP_VERSION` | `0.0.0` | Versión que reporta `/health` |
 | `AUTH_RATE_LIMIT` | interno | Max peticiones/min/IP en rutas de auth |
 | `LOG_LEVEL` | `info` | Nivel de log (pino) |
 | `WEB_DIR` | `web` | Directorio del build estático de la web |
 
 Web (build): `VITE_API_URL`, `VITE_PUBLIC_URL`.
+
+## Documentación
+
+- `docs/GUIA-FAMILIA.md` — cómo se usa (para la familia).
+- `docs/OPERACIONES.md` — despliegue, copias y restauración, APK, notificaciones, seguridad y problemas típicos (para quien mantiene el servidor).
+- `AGENTS.md` y `.kimi-code/skills/` — convenciones y procedimiento de despliegue.
 
 ## Modelo y API
 
@@ -61,6 +68,10 @@ Web (build): `VITE_API_URL`, `VITE_PUBLIC_URL`.
 - La BD vive en `DATA_DIR/compra.db` (WAL). La API vuelca `VACUUM INTO` a `DATA_DIR/backups/` cada 6 h (una copia por día, 14 días).
 - En el VPS, `~/servicios/backup.sh` copia semanalmente (cron) los datos de compra y de Nextcloud a `~/backups/<fecha>/` con retención de 8 copias. Son copias **locales**: protegen contra borrados, no contra fallo de disco. El respaldo off-site está pendiente de decidir destino.
 
+## Notificaciones push
+
+Web Push (VAPID) sin Firebase: claves generadas solas y guardadas en la tabla `kv`. `Notifier` (`apps/api/src/push.ts`) decide a quién avisar (añadidos, asignaciones, «empieza a comprar», lista completa), agrupa avisos seguidos y respeta las preferencias de cada persona. El service worker propio (`apps/web/src/sw.ts`) muestra los avisos, salvo con la app a la vista.
+
 ## Seguridad
 
-CSP estricta (helmet), CORS cerrado, rate-limit en auth, consultas preparadas, scopeo por hogar en cada query, verificación de contraseña con comparación de tiempos, allowlist de hosts de push anti-SSRF (`fcm.googleapis.com`, Mozilla, Windows, Apple).
+Cambio de contraseña, lista y cierre de sesiones, y recuperación del acceso por enlace de un solo uso generado por un administrador (sin correo). CSP estricta (helmet), CORS cerrado, rate-limit en auth, consultas preparadas, scopeo por hogar en cada query, verificación de contraseña con comparación de tiempos, allowlist de hosts de push anti-SSRF (`fcm.googleapis.com`, Mozilla, Windows, Apple).

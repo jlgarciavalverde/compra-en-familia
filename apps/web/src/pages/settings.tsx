@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Reorder, useDragControls } from "motion/react";
-import { Check, Copy, DeviceMobile, DotsSixVertical, DownloadSimple, MoonStars, Plus, Share, SignOut, Storefront, Sun, SunHorizon, Trash, UserMinus } from "@phosphor-icons/react";
+import { Check, Copy, DeviceMobile, DotsSixVertical, DownloadSimple, Key, MoonStars, Plus, Share, SignOut, Storefront, Sun, SunHorizon, Trash, UserMinus } from "@phosphor-icons/react";
 import { CHAINS, CHAIN_NAMES, type Category, type Chain, type Store } from "@compra/shared";
 import { api, downloadExport, PUBLIC_URL } from "../lib/api";
 import { useAuth } from "../lib/auth";
@@ -11,6 +11,7 @@ import { useInstallPrompt } from "../lib/install";
 import { useTheme, type ThemeChoice } from "../lib/theme";
 import { cn } from "../lib/cn";
 import { useToast } from "../components/toast";
+import { AndroidCard, NotificationsCard, SecurityCard } from "../components/account-cards";
 import { Avatar, Button, EmojiPicker, Field, PROFILE_COLORS, PROFILE_EMOJIS, Sheet } from "../components/ui";
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
@@ -64,6 +65,12 @@ function HouseholdCard() {
   const qc = useQueryClient();
   const [link, setLink] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [reset, setReset] = useState<{ name: string; link: string } | null>(null);
+  const resetAccess = useMutation({
+    mutationFn: (m: { id: string; name: string }) => api.resetMember(m.id).then((r) => ({ name: m.name, link: `${PUBLIC_URL}/restablecer/${r.code}` })),
+    onSuccess: setReset,
+    onError: (e) => toast({ message: e.message, tone: "error" }),
+  });
   const remove = useMutation({
     mutationFn: api.removeMember,
     onSuccess: () => { setConfirmId(null); qc.invalidateQueries({ queryKey: ["me"] }); toast({ message: "Ya no forma parte del hogar" }); },
@@ -96,6 +103,12 @@ function HouseholdCard() {
               <>
                 <span className="text-sm text-muted">{m.role === "admin" ? "Administrador" : "Miembro"}</span>
                 {user?.role === "admin" && m.id !== user.id && (
+                  <button onClick={() => resetAccess.mutate({ id: m.id, name: m.name })} aria-label={`Restablecer el acceso de ${m.name}`} title="Restablecer el acceso"
+                    className="grid size-10 place-items-center rounded-full text-muted transition hover:bg-surface-2 active:scale-90">
+                    <Key size={20} />
+                  </button>
+                )}
+                {user?.role === "admin" && m.id !== user.id && (
                   <button onClick={() => setConfirmId(m.id)} aria-label={`Quitar a ${m.name} del hogar`}
                     className="grid size-10 place-items-center rounded-full text-muted transition hover:bg-surface-2 active:scale-90">
                     <UserMinus size={20} />
@@ -106,6 +119,20 @@ function HouseholdCard() {
           </li>
         ))}
       </ul>
+      <Sheet open={!!reset} onClose={() => setReset(null)} title="Restablecer el acceso">
+        {reset && (
+          <div className="flex flex-col gap-3">
+            <p>Manda este enlace a <strong>{reset.name}</strong> para que elija una contraseña nueva. Sirve una sola vez y caduca en 24 horas.</p>
+            <p className="break-all rounded-xl bg-surface-2 p-3 text-sm font-bold" data-testid="reset-link">{reset.link}</p>
+            <div className="flex gap-2">
+              <Button variant="soft" className="flex-1" onClick={() => { void navigator.clipboard?.writeText(reset.link).then(() => toast({ message: "Enlace copiado" })); }}><Copy size={20} /> Copiar</Button>
+              <a className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-primary font-bold text-on-primary" target="_blank" rel="noreferrer"
+                href={`https://wa.me/?text=${encodeURIComponent(`Enlace para elegir tu nueva contraseña de Compra en Familia: ${reset.link}`)}`}>WhatsApp</a>
+            </div>
+            <p className="text-sm text-muted">Al usarlo se cerrará la sesión de {reset.name} en todos sus dispositivos.</p>
+          </div>
+        )}
+      </Sheet>
       {user?.role === "admin" && (
         link ? (
           <div className="flex flex-col gap-3 rounded-2xl bg-surface-2 p-4">
@@ -271,6 +298,9 @@ export function SettingsPage() {
       <ProfileCard />
       <HouseholdCard />
       <StoresCard />
+      <NotificationsCard />
+      <SecurityCard />
+      <AndroidCard />
       <DataCard />
       <Card title="Apariencia">
         <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tema">

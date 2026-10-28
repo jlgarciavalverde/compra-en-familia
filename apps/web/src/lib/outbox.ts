@@ -29,7 +29,33 @@ let flushing = false;
 let netFail = false;
 let cleanup: (() => void) | null = null;
 
-const persist = () => (userId ? save(KEYS.outbox, { userId, ops: state.ops }) : Promise.resolve());
+/**
+ * La cola se guarda de forma **síncrona** en localStorage: si la app se cierra o se recarga un instante después de
+ * añadir algo sin cobertura, el cambio no se pierde (IndexedDB es asíncrono y una escritura en vuelo se pierde al cerrar).
+ * Si localStorage no está disponible, se usa IndexedDB/memoria.
+ */
+const LS_KEY = "ce_outbox";
+type Saved = { userId: string; ops: Op[] };
+
+function readLocal(): Saved | undefined {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? (JSON.parse(raw) as Saved) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function persist(): Promise<void> {
+  if (!userId) return Promise.resolve();
+  const saved: Saved = { userId, ops: state.ops };
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(saved));
+    return Promise.resolve();
+  } catch {
+    return save(KEYS.outbox, saved);
+  }
+}
 const tick = () => new Promise<void>((r) => setTimeout(r, 0));
 
 /** Envía un cambio al servidor con su clave de idempotencia (el id del cambio). */
@@ -129,7 +155,8 @@ export const outbox = {
     qc = client;
     userId = uid;
     onDropped = dropped;
-    const saved = await load<{ userId: string; ops: Op[] }>(KEYS.outbox);
+    // Antes se guardaba en IndexedDB: si quedó algo pendiente de esa versión, se recupera y se pasa a localStorage.
+    const saved = readLocal() ?? (await load<Saved>(KEYS.outbox));
     if (userId !== uid) return; // se cambió de usuario mientras se cargaba
     set({ ops: saved?.userId === uid ? saved.ops : [], offline: !navigator.onLine });
 
@@ -169,6 +196,7 @@ export const outbox = {
   /** Descarta todo lo pendiente (cierre de sesión). */
   async reset() {
     set({ ops: [] });
+    try { localStorage.removeItem(LS_KEY); } catch { /* sin almacenamiento */ }
     await remove(KEYS.outbox);
   },
 

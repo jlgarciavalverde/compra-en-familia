@@ -27,15 +27,12 @@ export default defineConfig({
           { src: "icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
       },
-      workbox: {
-        // La app abre sin red: se precachea el "cascarón" (HTML, JS, CSS, fuentes latinas e iconos).
+      // Service worker propio (src/sw.ts): además de precachear la app, recibe las notificaciones push.
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
+      injectManifest: {
         globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest}", "**/*-latin-*.woff2", "**/*-latin-ext-*.woff2"],
-        navigateFallback: "/index.html",
-        // Lo que no es la app (API, tiempo real, salud y el APK) nunca se sirve desde el service worker.
-        navigateFallbackDenylist: [/^\/api\//, /^\/ws/, /^\/health/, /\.apk$/],
-        cleanupOutdatedCaches: true,
-        clientsClaim: true,
-        skipWaiting: true,
       },
     }),
   ],

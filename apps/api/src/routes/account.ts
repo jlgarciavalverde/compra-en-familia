@@ -69,8 +69,11 @@ export const registerAccount: Register = (app, { db, hub, cfg }) => {
       return id;
     });
 
-    const user = toUser(get(db, "SELECT * FROM users WHERE id = ?", userId)!);
+    const row = get(db, "SELECT * FROM users WHERE id = ?", userId)!;
+    const user = toUser(row);
     const token = createSession(db, userId, req.headers["user-agent"]);
+    // Los demás ven al recién llegado al instante (lista de miembros, asignar productos…).
+    hub.broadcast(row.household_id, { type: "changed" });
     reply.code(201);
     return { token, user };
   });

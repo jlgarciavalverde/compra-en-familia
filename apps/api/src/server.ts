@@ -8,6 +8,7 @@ const app = await buildApp({
   version: process.env.APP_VERSION ?? "0.0.0",
   setupCode: process.env.SETUP_CODE || undefined,
   webDir: process.env.WEB_DIR ?? "web",
+  downloadsDir: `${DATA_DIR}/downloads`,
   allowedOrigins: (process.env.ALLOWED_ORIGINS
     ?? (process.env.NODE_ENV === "production"
       ? "https://compra.redgarverde.com"

@@ -1,0 +1,12 @@
+{
+  "name": "compra-twa",
+  "private": true,
+  "type": "module",
+  "description": "Genera y compila el APK de Android (TWA) de Compra en Familia con Bubblewrap.",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@bubblewrap/core": "^1.25.0"
+  }
+}

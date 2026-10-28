@@ -13,6 +13,8 @@ export interface AppConfig {
   authRateLimit?: number;
   /** Dirección pública de la app (identifica al servidor ante los servicios de push). */
   publicUrl?: string;
+  /** Carpeta con el APK de Android y su `version.json` (por defecto, no hay descarga). */
+  downloadsDir?: string;
   /** Para pruebas: sustituye el envío real de notificaciones. */
   pushSender?: PushSender;
   /** Espera para agrupar avisos seguidos (30 s por defecto). */
